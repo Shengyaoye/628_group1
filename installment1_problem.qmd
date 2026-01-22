@@ -1,0 +1,392 @@
+---
+title: "STAT 628 Credit Risk Project: Installment 1"
+subtitle: "Spring 2026"
+author: "Shengyao Ye"
+date: last-modified
+format: pdf
+geometry:
+  - margin=1in
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+#| label: setup
+#| echo: false
+knitr::opts_chunk$set(
+    echo = TRUE, tidy = TRUE,
+    tidy.opts = list(width.cutoff=80, arrow=TRUE, indent=2),
+    fig.height = 3.375, fig.width = 6
+)
+```
+
+## Problem Introduction
+
+You have been asked to help a local credit union assess the credit risk
+of potential borrowers who have applied for small business loans. The
+credit union tends to attract borrowers who have started small local
+business like cafes, dry cleaners, or bodegas but lack extensive credit
+histories or background. Typically, these borrowers, having exhausted
+most of their personal funds to start their businesses, seek short-term
+loans to help keep their businesses running. However, their lack of
+credit background makes these entrepreneurs too risky for large national
+banks. And so these potential borrowers have turned to the local credit
+union and applied for a loan.
+
+The credit union issues loans with 12 month terms. That is, it expects
+to recover the principal and interest within one year. The principals
+range from about \$10,000 to \$2 million. To obtain payments from the
+borrower, the credit union garnishes a fixed percentage of the credit
+card transactions processed by the borrower. The credit union extracts
+this percentage until it recovers not only the principal but also the
+interest. That is, each month the lender take a cut from all credit card
+transactions made by the business. The percentage is fixed at the time
+that the loan originates and is set in anticipation that the borrower
+can pay off the loan in 12 months.
+
+Of course, there is monthly variation in credit card transactions: in
+some months, businesses might have a large number of sales and in some
+months, they might not have many sales. Such fluctuations contribute to
+the risk the credit union assumes when it lends money. If a business
+enjoys strong sales for several months, the credit union may recover its
+money (plus interest) quickly. On the other hand, if a business
+experiences a prolonged period of reduced sales, the credit union is
+unlikely to recover its money within the year.
+
+### An example
+
+As an example, suppose that the owner of a new cafe obtains a \$20,000
+loan from the credit union. With interest of 20%, the cafe owner must
+repay a total of \$24,000 to the credit union within 12 months. To
+ensure on-time repayment, the credit union wants to recover \$2,000 per
+month by garnishing the cafe's credit card transactions. When the cafe
+owner applied for the loan, they reported that, on average, they
+processed \$15,000 per month in credit card transactions. Based on this
+information, the credit union decided to garnish
+$2000/15000 \times 100\% \approx 13.3\%$ of all credit card transactions
+processed by the cafe.
+
+If the cafe has a strong month of sales and processes \$22,500 in credit
+card transactions, the credit union will receive \$3,000, putting the
+cafe ahead of its payment schedule. On the other hand, if the cafe
+experiences a slow month and only processes \$12,000 in transactions,
+the credit union will receiving only \$1,600, putting the cafe behind
+its payment schedule.
+
+## Your task
+
+To predict the riskiness of lending money to new potential borrowers,
+the credit union collected data about loans they have given in the past.
+You have received a dataset derived from a random sample of these past
+loans containing three variables:
+
+-   The total amount owed to the credit union (`TotalAmtOwed`). This
+    amount reflects the principal of the loan as well as all interest.
+    The credit union wants to recover this amount from the borrower at
+    the end of the 12 months.
+
+-   The total amount that was actually paid back to the credit union
+    after six months (`AmtRepaid`). This is the actual amount of money
+    that credit union recovered after six months by garnishing the
+    borrower's credit card transactions.
+
+-   A new metric that the credit union created called **P**erformance
+    **R**atio at **S**ix **M**onths (`PRSM`). The PRSM score is computed
+    as $$
+    \text{PRSM} = 2 \times \frac{\text{Amount repaid at 6 months}}{\text{Total amount owed}}.
+    $$
+
+## Grading
+
+Please refer to the grading rubric on Canvas. To earn all full points on
+a particular question, you must (i) write **concise**, narrative answers
+to each prompt using complete sentences free from grammatical or
+spelling errors and (ii) include working code to produce the requested
+visualizations or numerical summaries. The instructor and TA will run
+your submitted code and compare it to the visualizations and answers
+submitted. If they are unable to reproduce your submitted answers for a
+particular question, the maximum number of points you can receive is
+half of the points for that question.
+
+\newpage
+
+## Problem 1
+
+### 1(a)
+
+Load your data set into `R` (say) as well as any and all necessary
+libraries (e.g., `tidyverse`).
+
+*Solution*: <!-- Start writing solution here -->
+
+```{r}
+#| label: Q1a
+# Your code goes here!
+library(tidyverse)
+df <- read.csv("D:/temp_data_628/installment1_group1.csv") 
+head(df)
+```
+
+### 1(b)
+
+Using appropriate numerical and graphical tools, summarize the
+distributions of each of the 3 variables. Comment, in particular, on
+whether each variable appears to be normally distributed or not.
+
+*Solution*: \<!--
+
+**TotalOwed:** The histogram shows a roughly uniform or multi-modal
+distribution rather than a bell shape. The Q-Q plot deviates
+significantly from the straight line at both tails (S-shape). Therefore,
+TotalOwed does not appear to be normally distributed.
+
+**AmtRepaid:** The histogram is clearly right-skewed, with a long
+tail extending to the right. The mean (\$86,714) is greater than the
+median (\$80,234), and the Q-Q plot shows a distinct curvature. It is
+not normally distributed.
+
+**PRSM:** The histogram is symmetric and bell-shaped. The mean (0.8210)
+and median (0.8249) are very close. Additionally, the points on the Q-Q
+plot align closely with the diagonal line. Thus, PRSM appears to be
+normally distributed --\>
+
+```{r}
+#| label: Q1b-totalowed
+# Your code for goes here.
+# You may need to use multiple code blocks. 
+#(Numerical Summary)
+summary(df)
+
+#(Graphical Summary)
+par(mfrow = c(2, 3))
+
+# 1: TotalOwed
+hist(df$TotalOwed, main = "Hist: TotalOwed", xlab = "Total Owed", col = "skyblue")
+qqnorm(df$TotalOwed, main = "QQ: TotalOwed"); qqline(df$TotalOwed, col = "red")
+
+# 2: AmtRepaid 
+hist(df$AmtRepaid, main = "Hist: AmtRepaid", xlab = "Amt Repaid", col = "lightgreen")
+qqnorm(df$AmtRepaid, main = "QQ: AmtRepaid"); qqline(df$AmtRepaid, col = "red")
+
+# 3: PRSM
+hist(df$PRSM, main = "Hist: PRSM", xlab = "PRSM Score", col = "salmon")
+qqnorm(df$PRSM, main = "QQ: PRSM"); qqline(df$PRSM, col = "red")
+
+par(mfrow = c(1, 1))
+```
+
+### 1(c)
+
+Remember that the credit union sets the garnishment percentage with the
+expectation that it can recover the total amount owed in 12 months.
+Accordingly, the credit union expects to have received about half of the
+total amount owed after six months. The credit union regards any loan
+for which the borrower has repaid less than half of the total amount
+owed in six months as risky.\
+Based on your data, what is the probability that a randomly selected
+loan will be risky?
+
+*Solution*: <!-- Start writing solution here 
+Based on the sample data, the probability that a randomly selected loan will be risky is 86.8% -->
+
+```{r}
+#| label: Q1c
+# Put any code you used for question 1(c) here. 
+# If you didn't need to use any code, you can delete the codeblock.
+
+is_risky <- df$AmtRepaid < (0.5 * df$TotalOwed)
+
+risk_prob <- mean(is_risky)
+
+print(paste("Probability of risky loan:", risk_prob))
+```
+
+## Problem 2
+
+The credit union is concerned that loans with higher principal (and
+therefore, higher total amounts owed) are more likely to be riskier than
+loans with lower principal (and therefore, lower total amounts owed).
+That is, the credit union is concerned that borrowers who owe more money
+to the credit union are less likely to pay off their debt on time than
+borrowers who owe less money. In this problem, you will consider the
+relationship between two variables measured in your data set, the total
+amount owed to the credit union (`TotalAmtOwed`) and the amount repaid
+at six months (`AmtRepaid`).
+
+### 2(a)
+
+Visualize the relationship between `TotalAmtOwed` and `AmtRepaid`. Do
+the variables appear to be independent or dependent? If they appear to
+be dependent, comment on the relationship between them.
+
+*Solution*: <!-- your solution goes here -->
+
+```{r}
+#| label: Q2a
+# Your code for question 2(a) goes here
+```
+
+### 2(b)
+
+If the amount garnished from the borrower's credit card transactions
+accumulates at a rate which will ensure full repayment in 12 months,
+approximately what would you expect the slope and intercept of the least
+squares line to be when regressing `AmtRepaid` ($Y$) on `TotalAmtOwed`
+($X$)?
+
+*Solution*: <!-- your solution goes here -->
+
+### 2(c)
+
+What is the slope and intercept of the least squares line fitted to your
+data? If these estimates differ from your expectations in part (b),
+comment briefly on the source of these differences. Assuming that the
+data adhere to the simple linear model assumptions, briefly comment on
+the degree to which your estimates differ from your expectations and
+explain why such differences might occur.
+
+*Solution*: <!-- your solution goes here -->
+
+```{r}
+#| label: Q2c
+# Your code for question 2(c) goes here
+```
+
+### 2(d)
+
+Suppose that the credit union has lent money to two borrowers: Aldo who
+owes a total of \$90,000 and Becky who owes \$20,000. Assuming that the
+data adhere to the linear model assumptions, compute 95% prediction
+intervals for the amounts that the credit union will recover from Aldo
+and Becky in six months.
+
+*Solution*: <!-- your solution here-->
+
+```{r }
+#| label: Q2d-chunk1
+# Your code for question 2(d) goes here
+# Feels free to use as many code chunks as you need
+```
+
+### 2(e)
+
+Do the data used to estimate the least squares regression line in 2(c)
+adhere to the linear model assumptions? If they do, briefly interpret
+the value of the slope $\beta_{1}$ and the $R^{2}$. If they do not,
+describe which assumptions are violated and how. You should use
+appropriate diagnostic tools to justify your answer.
+
+*Solution*: <!-- your solution goes here -->
+
+```{r}
+#| label: Q2e-chunk1
+# Your code for question 2(d) goes here
+# Feels free to use as many code chunks as you need
+```
+
+## Problem 3
+
+The credit union believes that its new metric, PRSM, can be used to
+quantify the riskiness of loans. Recall from Problem 2 that the credit
+union is concerned that the more a borrower owes, the less likely they
+are to pay the loan off on time. In this problem, you will consider the
+relationship between two variables measured in your data set, the total
+amount owed to the credit union (`TotalAmtOwed`) and the PRSM score
+(`PRSM`).
+
+### 3(a)
+
+Visualize the relationship between `TotalAmtOwed` and `PRSM`. Do the
+variables appear to be independent or dependent? If they appear to be
+dependent, comment on the relationship between them.
+
+*Solution*: <!-- your solution goes here -->
+
+```{r}
+#| label: Q3a
+# Your code for question 2(a) goes here
+```
+
+### 3(b)
+
+If the amount garnished from the borrower's credit card transactions
+accumulates at a rate which will ensure full repayment in 12 months,
+approximately what would you expect the slope and intercept of the least
+squares line when regressing `PRSM` ($Y$) on `TotalAmtOwed` ($X$) to be?
+
+*Solution*: <!-- your solution goes here -->
+
+### 3(c)
+
+What is the slope and intercept of the least squares line fitted to your
+data? Assuming that the data adhere to the linear model assumptions,
+briefly comment on the degree to which your estimates differ from your
+expectations and explain why such differences might occur.
+
+*Solution*: <!-- your solution goes here -->
+
+```{r}
+#| label: Q3c
+# Your code for question 3(c) goes here
+```
+
+### 3(d)
+
+Suppose that the credit union has lent money to two borrowers: Aldo who
+owes a total of \$90,000 and Becky who owes \$20,000. Assuming that data
+adhere to the linear model assumptions, compute 95% prediction intervals
+for the PRSM scores of Aldo's and Becky's loans. Comment on the
+differences in the standard errors of both predictions.
+
+*Solution*: <!-- start typing your solution here -->
+
+```{r}
+#| label: Q3d
+# Your code for question 3(d) goes here.
+```
+
+### 3(e)
+
+Do the data used to estimate the least squares regression line in 3(c)
+adhere to the linear model assumptions? If they do, briefly interpret
+the value of the slope $\beta_{1}$ and the $R^{2}$. If they do not,
+describe which assumptions are violated and how. You should use
+appropriate diagnostic tools to justify your answer.
+
+*Solution*: <!-- your solution goes here -->
+
+```{r}
+#| label: Q3e
+# Your code for question 3(e) goes here
+# Feels free to use as many code chunks as you need
+```
+
+## Problem 4
+
+Suppose that the credit union has the opportunity to lend out enough
+money to ensure its borrowers will owe a total of \$180,000. However,
+the bank has two options (A and B) for lending out these funds. Under
+option A, they make 2 loans, each of which will need to each pay back
+\$90,000. Under option B, they make 9 loan, each of which will need to
+pay back \$20,000. Due to its own credit obligations, the credit union
+must recover at least \$70,000 within six months of issuing the loan.
+Which option would you recommend to the credit union: lend to 2
+borrowers (Option A) or lend to 9 (Option B)? Justify your choice by
+estimating the probability that the credit union will meet its credit
+obligations (i.e. recover at least \$70,000 in six months). You should
+clearly state any assumptions you made in your analysis.
+
+*Hint*: you might find your answers to parts 2(d) and 3(d) helpful. In
+particular think about the mean and standard error and distribution of a
+single prediction at different values of the predictor. Then think about
+the mean, standard error, and distribution of the average of 2 and 9
+predictions at different values of the predictor.
+
+*Solution*: <!-- your solution here-->
+
+```{r}
+#| label: Q4
+# Your code for Problem 4 goes here
+# Use as many separate code chunks as you need
+```
